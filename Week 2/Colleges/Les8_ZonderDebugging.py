@@ -1,0 +1,26 @@
+from pyfirmata import Arduino, util
+import time
+
+# Verbind met de Arduino
+board = Arduino('/dev/ttyACM0')
+
+# Configureer de pins
+sensor_pin = board.get_pin('a:0:i')  # Lichtsensor op pin A0
+led_pin = board.get_pin('d:13:o')    # LED op pin 13
+
+# Start de iterator thread om input van de analoge pin te lezen
+it = util.Iterator(board)
+it.start()
+sensor_pin.enable_reporting()
+
+# Drempelwaarde voor lichtintensiteit
+threshold = 0.5
+
+while True:
+    light_level = sensor_pin.read()  # Lees de lichtsensor
+    if light_level is not None:
+        if light_level < threshold:
+            led_pin.write(1)  # Zet LED aan
+        else:
+            led_pin.write(0)  # Zet LED uit
+    time.sleep(1)  # Wacht voor 1 seconde
