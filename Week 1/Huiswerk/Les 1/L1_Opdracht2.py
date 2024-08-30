@@ -1,32 +1,33 @@
-from pyfirmata import Arduino, util
 import time
+from pyfirmata import Arduino, util
 
-# Maak verbinding met de Arduino
-board = Arduino('/dev/ttyACM0')  # Vervang '/dev/ttyACM0' door de juiste poort
+# Stel het board in
+board = Arduino('COM3')  # Vervang 'COM3' met de poort die jouw Arduino gebruikt
 
-# Definieer de pins
-led_pins = [board.get_pin(f'd:{pin}:o') for pin in (10, 11, 12)]
+# Zorg ervoor dat de LED pins als output zijn ingesteld
+led_11 = board.get_pin('d:11:o')
+led_12 = board.get_pin('d:12:o')
+led_13 = board.get_pin('d:13:o')
 
-def blink_leds(pattern):
-    """ Laat de LED's knipperen volgens een gegeven patroon. """
-    for state, duration in pattern:
-        for pin, status in zip(led_pins, state):
-            pin.write(status)
-        time.sleep(duration)
-
-# Definieer een patroon
-# (LED states, duration in seconds)
-pattern = [
-    ((1, 0, 0), 1),  # Alleen LED op pin 10
-    ((0, 1, 0), 1.5),  # Alleen LED op pin 11
-    ((0, 0, 1), 2)  # Alleen LED op pin 12
-]
+def led_pattern():
+    while True:
+        # LED op pin 11 aan en uit
+        led_11.write(1)  # Zet LED aan
+        time.sleep(0.5)  # Wacht 500 ms
+        led_11.write(0)  # Zet LED uit
+        
+        # LED op pin 12 aan en uit
+        led_12.write(1)  # Zet LED aan
+        time.sleep(1)    # Wacht 1000 ms
+        led_12.write(0)  # Zet LED uit
+        
+        # LED op pin 13 aan en uit
+        led_13.write(1)  # Zet LED aan
+        time.sleep(1.5)  # Wacht 1500 ms
+        led_13.write(0)  # Zet LED uit
 
 try:
-    while True:
-        blink_leds(pattern)
+    led_pattern()
 except KeyboardInterrupt:
-    # Zet alle LED's uit en sluit het bord af bij afsluiten
-    for pin in led_pins:
-        pin.write(0)
+    print("Programma gestopt.")
     board.exit()

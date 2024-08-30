@@ -1,32 +1,51 @@
-from pyfirmata import Arduino, util
+import pyfirmata
 import time
 
-# Maak verbinding met de Arduino
-board = Arduino('COM3')  # Vervang 'COM3' door de juiste COM-poort
+# Set up the connection to Arduino
+board = pyfirmata.Arduino('COM9')  # Change 'COM3' to your Arduino port
 
-# Definieer de LED pins
-led_pins = {
-    'rood': board.get_pin('d:9:o'),
-    'groen': board.get_pin('d:10:o'),
-    'blauw': board.get_pin('d:11:o')
-}
+# Define the LED pins
+redLEDPin = board.get_pin('d:13:o')
+yellowLEDPin = board.get_pin('d:12:o')
+greenLEDPin = board.get_pin('d:11:o')
 
-def control_led(color, state):
-    """ Schakel een specifieke LED aan of uit """
-    if color in led_pins:
-        led_pins[color].write(state)
+# Start an iterator thread to avoid buffer overflow
+iterator = pyfirmata.util.Iterator(board)
+iterator.start()
 
+# Make sure all LEDs are off initially
+redLEDPin.write(0)
+greenLEDPin.write(0)
+yellowLEDPin.write(0)
+
+def set_led(color):
+    if color == 'rood':
+        redLEDPin.write(1)
+        greenLEDPin.write(0)
+        yellowLEDPin.write(0)
+    elif color == 'geel':
+        redLEDPin.write(0)
+        greenLEDPin.write(0)
+        yellowLEDPin.write(1)
+    elif color == 'groen':
+        redLEDPin.write(0)
+        greenLEDPin.write(1)
+        yellowLEDPin.write(0)
+    else:
+        # Turn off all LEDs if the input does not match any color
+        redLEDPin.write(0)
+        greenLEDPin.write(0)
+        yellowLEDPin.write(0)
+
+# Main loop to take user input
 try:
     while True:
-        color_input = input("Voer een kleur in ('rood', 'groen', 'blauw' of 'stop' om te stoppen): ").lower()
-        if color_input == 'stop':
-            break
-        # Schakel de geselecteerde LED in of uit
-        control_led(color_input, 1)  # Zet LED aan
-        time.sleep(1)  # Laat het 1 seconde aan
-        control_led(color_input, 0)  # Zet LED uit
-finally:
-    # Zet alle LED's uit en sluit het bord af bij afsluiten
-    for color in led_pins:
-        led_pins[color].write(0)
+        color = input("Enter color (rood/groen/blauw): ").strip().lower()
+        set_led(color)
+except KeyboardInterrupt:
+    # Clean up on exit
+    redLEDPin.write(0)
+    greenLEDPin.write(0)
+    yellowLEDPin.write(0)
     board.exit()
+    print("\nProgram terminated.")

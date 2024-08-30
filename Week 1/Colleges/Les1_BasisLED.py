@@ -1,11 +1,11 @@
 from pyfirmata import Arduino, util
 import time
 
-board = Arduino('COM3') # Vervang 'COM3' door je Arduino-poort
-led_pin = board.get_pin('d:13:o') # d: digitale pin, 13: pin nummer, o: output
+# Vervang 'COM3' door de poort die je Arduino gebruikt
+board = Arduino('COM3')
 
 while True:
-    led_pin.write(1) # LED aan
-    time.sleep(1000)
-    led_pin.write(0) # LED uit
-    time.sleep(1000)
+    board.digital[13].write(1)  # Zet de LED op pin 13 aan
+    time.sleep(0.5)
+    board.digital[13].write(0)  # Zet de LED op pin 13 uit
+    time.sleep(0.5)

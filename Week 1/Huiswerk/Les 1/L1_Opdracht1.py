@@ -2,10 +2,10 @@ from pyfirmata import Arduino, util
 import time
 
 # Maak verbinding met de Arduino
-board = Arduino('/dev/ttyACM0')  # Vervang '/dev/ttyACM0' door de juiste poort
+board = Arduino('COM9')  # Vervang 'COM9' door de juiste poort
 
 # Definieer de pin
-led_pin = board.get_pin('d:13:o')
+led_pin = board.get_pin('d:12:o')
 
 while True:
         led_pin.write(1)  # Zet LED aan

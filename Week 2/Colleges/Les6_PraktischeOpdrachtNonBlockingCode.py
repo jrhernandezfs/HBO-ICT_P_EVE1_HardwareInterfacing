@@ -2,7 +2,7 @@ from pyfirmata import Arduino, util
 import time
 
 # Verbind met de Arduino
-board = Arduino('/dev/ttyACM0')
+board = Arduino('COM3')
 
 # Stel de pinmodus in
 analog_pin = board.get_pin('a:0:i')  # lichtsensor aangesloten op analoge pin 0

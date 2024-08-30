@@ -1,45 +1,41 @@
-from pyfirmata import Arduino, util
 import time
+from pyfirmata import Arduino, util
+import pyfirmata
 
-# Maak verbinding met de Arduino
-board = Arduino('/dev/ttyACM0')  # Vervang '/dev/ttyACM0' door de juiste poort
+# Setup de Arduino
+board = Arduino('COM9')  # Vervang 'COM9' door jouw seriële poort
 
-# Definieer de pins
-led_pins = [board.get_pin('d:8:o'), board.get_pin('d:9:o')]
-button_pin = board.get_pin('d:7:i')
+# Defineer pinnen
+led_pin = board.digital[8]
+button_pin = board.digital[7]
 
-def setup():
-    it = util.Iterator(board)
-    it.start()
-    button_pin.enable_reporting()
+# Variabelen voor het bijhouden van de LED- en knopstatus
+led_state = 0
+previous_button_state = 1  # Start met de knop niet ingedrukt
 
-def toggle_leds():
-    """ Wissel de staat van elke LED """
-    for pin in led_pins:
-        pin.write(not pin.read())
+# Start een iterator om de inputdata te lezen
+it = util.Iterator(board)
+it.start()
 
-# Debounce logica
-last_button_state = 0
-last_debounce_time = 0
-debounce_delay = 0.05
+# Stel de knop in als INPUT met interne pull-up weerstand
+button_pin.mode = pyfirmata.INPUT
 
-try:
-    setup()
-    while True:
-        reading = button_pin.read()
-        if reading != last_button_state:
-            last_debounce_time = time.time()
+while True:
+    # Lees de huidige staat van de knop
+    button_state = button_pin.read()
 
-        if (time.time() - last_debounce_time) > debounce_delay:
-            if reading != last_button_state:
-                last_button_state = reading
-                if reading == 1:
-                    toggle_leds()
+    # Zorg ervoor dat de knopstatus geldig is
+    if button_state is not None:
+        # Check of de knopstatus is veranderd
+        if button_state != previous_button_state:
+            # Als de knop net is ingedrukt (overgang van HIGH naar LOW)
+            if button_state == 0:
+                # Wissel de LED status
+                led_state = not led_state
+                led_pin.write(led_state)
 
-        time.sleep(0.01)  # Kleine vertraging om de loop beheersbaar te houden
+        # Bijwerken van de vorige knopstatus
+        previous_button_state = button_state
 
-except KeyboardInterrupt:
-    # Zet alle LED's uit en sluit het bord af bij afsluiten
-    for pin in led_pins:
-        pin.write(0)
-    board.exit()
+    # Een korte pauze om de loop stabiel te houden
+    time.sleep(0.01)

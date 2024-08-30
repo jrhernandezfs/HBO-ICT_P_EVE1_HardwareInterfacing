@@ -1,34 +1,49 @@
-from pyfirmata import Arduino, util
 import time
+from pyfirmata import Arduino, util
+import pyfirmata
 
-# Maak verbinding met de Arduino
-board = Arduino('COM3')  # Vervang 'COM3' door de juiste COM-poort
+# Setup de Arduino
+board = Arduino('COM9')  # Vervang 'COM9' door jouw seriële poort
 
-# Stel een iterator in om te luisteren naar inkomende data
+# Defineer pinnen
+led1_pin = board.digital[13]
+led2_pin = board.digital[12]
+button_pin = board.digital[11]
+
+# Variabelen voor het bijhouden van de LED- en knopstatus
+led1_state = 1  # Start met de eerste LED aan
+led2_state = 0  # Start met de tweede LED uit
+previous_button_state = 1  # Start met de knop niet ingedrukt
+
+# Start een iterator om de inputdata te lezen
 it = util.Iterator(board)
 it.start()
 
-# Definieer de STRING_DATA commando voor het verzenden van strings
-STRING_DATA = 0x71
+# Stel de knop in als INPUT met interne pull-up weerstand
+button_pin.mode = pyfirmata.INPUT
 
-# Stel een variabele in voor het verzenden van data
-input_pin = board.get_pin('d:7:i')  # Stel pin 7 in als invoer (voor een drukknop bijvoorbeeld)
-input_pin.enable_reporting()
+# Zet de startstatus van de LED's
+led1_pin.write(led1_state)
+led2_pin.write(led2_state)
 
-def send_and_echo(input_string):
-    """ Verzend een string naar de Arduino en print wat terugkomt. """
-    board.send_sysex(STRING_DATA, util.str_to_two_byte_iter(input_string))
-    time.sleep(0.1)  # Wacht even op de Arduino om te reageren
-    while board.bytes_available():
-        data = board.receive_sysex()
-        echo = util.two_byte_iter_to_str(data)
-        print("Echo van Arduino:", echo)
+while True:
+    # Lees de huidige staat van de knop
+    button_state = button_pin.read()
 
-try:
-    while True:
-        user_input = input("Voer een string in (type 'exit' om te stoppen): ")
-        if user_input.lower() == 'exit':
-            break
-        send_and_echo(user_input)
-finally:
-    board.exit()  # Sluit de verbinding netjes af
+    # Zorg ervoor dat de knopstatus geldig is
+    if button_state is not None:
+        # Check of de knopstatus is veranderd
+        if button_state != previous_button_state:
+            # Als de knop net is ingedrukt (overgang van HIGH naar LOW)
+            if button_state == 0:
+                # Wissel de LED's
+                led1_state = not led1_state
+                led2_state = not led2_state
+                led1_pin.write(led1_state)
+                led2_pin.write(led2_state)
+
+        # Bijwerken van de vorige knopstatus
+        previous_button_state = button_state
+
+    # Een korte pauze om de loop stabiel te houden
+    time.sleep(0.01)
