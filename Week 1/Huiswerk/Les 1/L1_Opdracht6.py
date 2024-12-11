@@ -1,18 +1,18 @@
-import pyfirmata
+from pyfirmata2 import Arduino
 import time
 
 # Setup the Arduino board
-board = pyfirmata.Arduino('COM9')  # Change 'COM3' to your Arduino port
+PORT = Arduino.AUTODETECT  # Automatically detect the correct port
+board = Arduino(PORT)
+
+print("Arduino gestart")
 
 # Define the LED pins
-redLEDPin = board.get_pin('d:13:o')
-greenLEDPin = board.get_pin('d:12:o')
-blueLEDPin = board.get_pin('d:11:o')
+redLEDPin = board.get_pin('d:13:o')  # Red LED on pin 13
+greenLEDPin = board.get_pin('d:12:o')  # Green LED on pin 12
+blueLEDPin = board.get_pin('d:11:o')  # Blue LED on pin 11
 
-# Start an iterator thread to avoid buffer overflow
-iterator = pyfirmata.util.Iterator(board)
-iterator.start()
-
+# Function to execute the LED sequence
 def execute_sequence(sequence):
     delay_time = 0.5  # Default delay time in seconds
 
@@ -35,17 +35,11 @@ def execute_sequence(sequence):
             delay_time = 0.25  # Decrease delay to 0.25 seconds
         else:
             print(f"Unknown command: {command}")
-            
+
         time.sleep(0.1)  # Short delay between commands to avoid overlap
 
-try:
-    while True:
-        sequence = input("Enter LED sequence (R for red, G for green, B for blue, D for delay, F for fast): ").strip().upper()
-        execute_sequence(sequence)
-except KeyboardInterrupt:
-    print("\nProgram terminated.")
-finally:
-    redLEDPin.write(0)
-    greenLEDPin.write(0)
-    blueLEDPin.write(0)
-    board.exit()
+# Main loop to get user input and execute the sequence
+print("Voer een LED-sequentie in (R voor rood, G voor groen, B voor blauw, D voor delay, F voor snel):")
+while True:
+    sequence = input("Enter LED sequence: ").strip().upper()
+    execute_sequence(sequence)

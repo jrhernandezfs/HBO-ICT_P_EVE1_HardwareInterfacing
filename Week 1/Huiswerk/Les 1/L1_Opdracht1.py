@@ -1,14 +1,15 @@
-from pyfirmata import Arduino, util
+import pyfirmata2
 import time
 
 # Maak verbinding met de Arduino
-board = Arduino('COM9')  # Vervang 'COM9' door de juiste poort
+PORT = pyfirmata2.Arduino.AUTODETECT  # Detecteert automatisch de juiste poort
+board = pyfirmata2.Arduino(PORT)  # Vervang 'COM9' door de juiste poort
 
 # Definieer de pin
-led_pin = board.get_pin('d:12:o')
+led_pin = 12  # Pin 12
 
 while True:
-        led_pin.write(1)  # Zet LED aan
-        time.sleep(1)
-        led_pin.write(0)  # Zet LED uit
-        time.sleep(1)
+    board.digital[led_pin].write(1)  # Zet LED aan
+    time.sleep(1)
+    board.digital[led_pin].write(0)  # Zet LED uit
+    time.sleep(1)
